@@ -1,0 +1,6 @@
+model:
+  name: simple_cnn
+
+training:
+  batch_size: 32
+  epochs: 10

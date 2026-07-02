@@ -1,0 +1,6 @@
+# Core dependencies
+pytorch
+torchvision
+pillow
+pyyaml
+mlflow

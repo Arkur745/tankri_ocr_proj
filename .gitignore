@@ -31,8 +31,9 @@ Thumbs.db
 # MLflow
 mlruns/
 
-# Models
+# Models and outputs
 models/
+outputs/
 checkpoints/
 *.pth
 *.pt
@@ -49,3 +50,4 @@ dataset/processed/
 build/
 dist/
 *.egg-info/
+/models

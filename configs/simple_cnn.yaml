@@ -1,0 +1,9 @@
+model:
+  name: simple_cnn
+  input_channels: 1
+  num_classes: 10
+
+training:
+  batch_size: 32
+  epochs: 10
+  learning_rate: 0.001

@@ -5,6 +5,30 @@ images_dir = Path("dataset/images")
 
 files = list(images_dir.glob("*.png"))
 
+# ----------------------------
+# Find already numbered images
+# ----------------------------
+
+numbered_files = []
+
+for file in files:
+    if file.stem.isdigit():
+        numbered_files.append(int(file.stem))
+
+start_number = max(numbered_files, default=0)
+
+print(f"Existing images: {start_number}")
+
+# ----------------------------
+# Find new screenshots
+# ----------------------------
+
+new_files = [
+    f for f in files
+    if f.stem.startswith("Screenshot")
+]
+
+
 def extract_time(file):
     match = re.search(
         r"Screenshot (\d{4}-\d{2}-\d{2}) (\d{6})",
@@ -16,17 +40,28 @@ def extract_time(file):
 
     return match.group(1), match.group(2)
 
-# Oldest first
-files.sort(key=extract_time)
 
+# Sort chronologically
+new_files.sort(key=extract_time)
+
+# ----------------------------
 # Temporary rename
-for i, file in enumerate(files, start=1):
+# ----------------------------
+
+for i, file in enumerate(new_files, start=1):
     file.rename(images_dir / f"tmp_{i:04d}.png")
 
+# ----------------------------
 # Final rename
-for i in range(1, len(files) + 1):
+# ----------------------------
+
+for i in range(1, len(new_files) + 1):
+
+    new_name = start_number + i
+
     (images_dir / f"tmp_{i:04d}.png").rename(
-        images_dir / f"{i}.png"
+        images_dir / f"{new_name}.png"
     )
 
-print(f"Renamed {len(files)} files.")
+print(f"Renamed {len(new_files)} new images.")
+print(f"Last image number: {start_number + len(new_files)}")

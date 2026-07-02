@@ -1,0 +1,9 @@
+model:
+  name: resnet18
+  pretrained: true
+  num_classes: 10
+
+training:
+  batch_size: 64
+  epochs: 20
+  learning_rate: 0.0001

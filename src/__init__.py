@@ -1,0 +1,1 @@
+"""Tankri OCR project package."""
