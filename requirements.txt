@@ -4,3 +4,5 @@ torchvision
 pillow
 pyyaml
 mlflow
+streamlit
+opencv-python-headless
