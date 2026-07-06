@@ -72,35 +72,27 @@ def load_model_from_checkpoint(model, checkpoint_path, device):
     return load_model(model, checkpoint_path, device)
 
 
+from src.label_mapping import load_label_mapping
+
+
 def load_label_mappings(mapping_path):
     """Load label-to-index and index-to-label mappings from disk."""
 
     mapping_path = resolve_existing_path(
         mapping_path,
-        fallback_candidates=["notebooks/label_to_idx.json",
-                             "artifacts/label_to_idx.json"],
+        fallback_candidates=[
+            "artifacts/label_to_idx.json",
+            "notebooks/label_to_idx.json"
+        ],
     )
-    if not mapping_path.exists():
-        raise FileNotFoundError(
-            f"Label mapping file not found: {mapping_path}")
-
-    with mapping_path.open("r", encoding="utf-8") as handle:
-        label_to_idx = json.load(handle)
-
-    idx_to_label = {idx: label for label, idx in label_to_idx.items()}
-    return label_to_idx, idx_to_label
+    return load_label_mapping(mapping_path)
 
 
 def preprocess_image_for_model(image, transform):
     """Apply the same preprocessing pathway used for validation inference."""
 
     grayscale_image = image.convert("L")
-    image_array = np.array(grayscale_image)
-
-    cropped_image = crop_character(image_array)
-    pil_image = Image.fromarray(cropped_image)
-
-    tensor = transform(pil_image)
+    tensor = transform(grayscale_image)
     return tensor.unsqueeze(0)
 
 
