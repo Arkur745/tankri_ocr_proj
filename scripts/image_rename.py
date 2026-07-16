@@ -1,7 +1,21 @@
+import sys
 from pathlib import Path
 import re
 
-images_dir = Path("dataset/images")
+# Add project root to sys.path
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.config import RENAME_TARGET, IMAGES_DIR, DATASET_DIR
+
+if RENAME_TARGET == "test":
+    images_dir = DATASET_DIR / "test"
+    print("Renaming target: TEST dataset")
+else:
+    images_dir = IMAGES_DIR
+    print("Renaming target: TRAINING dataset")
+
+print(f"Target directory: {images_dir}")
 
 files = list(images_dir.glob("*.png"))
 
