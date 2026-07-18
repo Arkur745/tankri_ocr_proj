@@ -1,12 +1,12 @@
 # Progressive Domain Adaptation
 
-This document describes the Progressive Domain Adaptation method designed to bridge the gap between synthetic renderings and real handwritten glyphs.
+This document describes the Progressive Domain Adaptation / Transfer Learning method designed to expand the baseline model's representations using synthetic and hybrid datasets.
 
-## 1. Domain Gap Problem
+## 1. Low-Resource & Domain Gap Problem
 
-Handwritten Tankri characters feature unique stroke variances, pressure gradients, and ink bleed patterns that are difficult to model procedurally.
-Models trained purely on synthetic glyphs suffer from severe domain gap degradation, achieving extremely low accuracies on real handwritten characters.
-Conversely, training directly on small real sets (1,205 images) leads to rapid overfitting.
+Handwritten Tankri characters feature unique stroke variances, pressure gradients, and ink bleed patterns.
+* **Overfitting**: Training a deep network directly on a small real handwritten dataset (1,205 images) leads to rapid overfitting and poor generalization.
+* **Transfer Learning**: To solve this, we pre-train the baseline model on the real dataset, then perform transfer learning / Progressive Domain Adaptation on the **9,000 synthetic images** or the balanced **hybrid dataset** (1,205 real + 2,000 synthetic images) to expand its feature space and improve accuracy.
 
 ---
 

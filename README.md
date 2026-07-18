@@ -6,26 +6,26 @@ An academic-grade, end-to-end Handwritten Optical Character Recognition (OCR) pi
 
 ## 1. Project Overview & Motivation
 
-The Tankri script (or Takri) is an endangered historical script of northern India. Translating and digitizing historical documents written in Tankri is hindered by:
-* **The Domain Gap**: Procedural fonts rendered synthetically do not capture handwritten variances, pressure profiles, ink bleeds, or physical paper textures.
-* **Low-Resource Data Constraints**: With only 1,205 real handwritten glyph examples available, standard deep convolutional neural networks overfit rapidly.
+The Tankri script (or Takri) is an endangered historical script of northern India. Digitizing historical documents written in Tankri is challenging due to the lack of annotated data.
 
-To solve this, this project implements a **Hybrid Dataset Strategy** combined with **Progressive Domain Adaptation (PDA)**. By pre-training on synthetic datasets and selectively unfreezing deep semantic layers during hybrid fine-tuning, we bridge the domain gap and improve generalization without catastrophic forgetting.
+To solve this, this project:
+1. Trains a baseline model on the **1,205 real handwritten images**.
+2. Performs **Transfer Learning / Progressive Domain Adaptation (PDA)** starting from the baseline weights and training on the **9,000 synthetic images** (or a balanced **hybrid dataset** of 1,205 real + 2,000 synthetic images) to adapt representations and boost generalization.
 
 ```
-       [9,000 Synthetic Glyphs]
-                  │ (Pre-training)
-                  ▼
-         [ResNet18 Backbone]
-                  │
-                  ▼
-    [1,205 Real + 2,000 Synthetic]  <── (Hybrid Dataset Fine-Tuning)
-                  │
-                  ▼
-[Progressive Domain Adaptation (PDA)] <── (Freeze conv1-layer2, tune layer4+fc)
-                  │
-                  ▼
-     [Trained Checkpoint (22.58%)]
+  [1,205 Real Handwritten Images]
+                 │ (Baseline Training)
+                 ▼
+         [best_model.pth]
+                 │
+                 ▼
+     [Transfer Learning / PDA]  <── (Fine-Tuning on Synthetic / Hybrid Set)
+                 │
+                 ▼
+ [Progressive Domain Adaptation] <── (Freeze conv1-layer2, tune layer4+fc)
+                 │
+                 ▼
+   [best_domain_adapted_model.pth] (22.58% accuracy)
 ```
 
 ---
@@ -43,7 +43,7 @@ To solve this, this project implements a **Hybrid Dataset Strategy** combined wi
 
 Evaluation conducted on the official unseen handwritten test set (31 samples, 45 classes):
 
-| Metric | Baseline (Pure Synthetic Pre-train) | Domain-Adapted (PDA + Hybrid Fine-tune) | Improvement |
+| Metric | Baseline (Trained on 1,205 Real Images) | Domain-Adapted (PDA Transfer Learned on Synthetic/Hybrid) | Improvement |
 | :--- | :---: | :---: | :---: |
 | **Top-1 Accuracy** | 6.45% | **22.58%** | **+16.13% (3.5x)** |
 | **Top-3 Accuracy** | 19.35% | **54.84%** | **+35.49% (2.8x)** |
