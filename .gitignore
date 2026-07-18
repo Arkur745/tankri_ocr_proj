@@ -53,3 +53,10 @@ dist/
 /models
 reports/
 config_snapshot.json
+
+# Synthetic datasets
+generated_dataset/
+generated_dataset_hybrid/
+
+# MLflow SQLite Database
+mlflow.db

@@ -11,10 +11,10 @@ sys.path.insert(0, str(PROJECT_ROOT))
 sys.stdout.reconfigure(encoding='utf-8')
 
 from src.models import ResNet18Model
-from src.transforms import val_transform_resnet
-from src.dataset import TankriDataset
-from src.inference import preprocess_image_for_model, predict_from_pil_image, resolve_checkpoint_path
-from src.label_mapping import load_label_mapping
+from src.dataset.augmentation import val_transform_resnet
+from src.dataset.loader import TankriDataset
+from src.inference.inference import preprocess_image_for_model, predict_from_pil_image, resolve_checkpoint_path
+from src.utils.label_mapping import load_label_mapping
 
 def run_verification():
     print("Running end-to-end pipeline verification...")

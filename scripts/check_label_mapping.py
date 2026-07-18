@@ -8,8 +8,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 sys.stdout.reconfigure(encoding='utf-8')
 
-from src.label_mapping import load_label_mapping
-from src.config import LABELS_FILE, MODELS_DIR
+from src.utils.label_mapping import load_label_mapping
+from src.configs.config import LABELS_FILE, MODELS_DIR
 
 def run_mapping_checks():
     print("Running mapping consistency checks...")

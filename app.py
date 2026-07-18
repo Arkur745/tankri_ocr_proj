@@ -7,15 +7,15 @@ import streamlit as st
 import torch
 from PIL import Image
 
-from src.config import IMAGES_DIR, MODELS_DIR, PROJECT_ROOT
-from src.inference import (
+from src.configs.config import IMAGES_DIR, MODELS_DIR, PROJECT_ROOT
+from src.inference.inference import (
     load_label_mappings,
     load_model_from_checkpoint,
     predict_from_pil_image,
     resolve_checkpoint_path,
 )
 from src.models import ResNet18Model
-from src.transforms import val_transform_resnet
+from src.dataset.augmentation import val_transform_resnet
 
 st.set_page_config(page_title="Tankri OCR", page_icon="𑚔", layout="wide")
 

@@ -6,7 +6,7 @@ import re
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.config import RENAME_TARGET, IMAGES_DIR, DATASET_DIR
+from src.configs.config import RENAME_TARGET, IMAGES_DIR, DATASET_DIR
 
 if RENAME_TARGET == "test":
     images_dir = DATASET_DIR / "test"

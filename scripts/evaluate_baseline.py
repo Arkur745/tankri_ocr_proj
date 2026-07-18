@@ -17,15 +17,22 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 sys.stdout.reconfigure(encoding='utf-8')
 
-import src.config as config
-from src.label_mapping import load_label_mapping
-from src.dataset import TankriDataset
-from src.transforms import val_transform_resnet
+import src.configs.config as config
+from src.utils.label_mapping import load_label_mapping
+from src.dataset.loader import TankriDataset
+from src.dataset.augmentation import val_transform_resnet
 
-def run_evaluation():
+def run_evaluation(use_adapted=False):
     warnings.filterwarnings("ignore", category=UserWarning)
+    
+    # If use_adapted is False, fallback to checking configs
+    if not use_adapted:
+        use_adapted = getattr(config, "ENABLE_DOMAIN_ADAPTATION", False)
+        
+    ckpt_name = "best_domain_adapted_model.pth" if use_adapted else "best_model.pth"
+
     print("==========================================================")
-    print("Evaluating Baseline Model on Test Set")
+    print(f"Evaluating {('Adapted' if use_adapted else 'Baseline')} Model on Test Set")
     print("==========================================================")
 
     # 1. Load label mapping
@@ -35,12 +42,12 @@ def run_evaluation():
     target_names = [idx_to_label[i] for i in range(num_classes)]
     print(f"✔ Loaded label mappings. Number of classes: {num_classes}")
 
-    # 2. Find and load the best model checkpoint
+    # 2. Find and load the model checkpoint
     checkpoint_candidates = [
-        PROJECT_ROOT / "notebooks" / "models" / "best_model.pth",
-        PROJECT_ROOT / "models" / "best_model.pth",
-        PROJECT_ROOT / "notebooks" / "best_model.pth",
-        PROJECT_ROOT / "best_model.pth",
+        PROJECT_ROOT / "notebooks" / "models" / ckpt_name,
+        PROJECT_ROOT / "models" / ckpt_name,
+        PROJECT_ROOT / "notebooks" / ckpt_name,
+        PROJECT_ROOT / ckpt_name,
     ]
     checkpoint_path = None
     for cand in checkpoint_candidates:
@@ -49,7 +56,7 @@ def run_evaluation():
             break
 
     if checkpoint_path is None:
-        print("❌ Error: No trained model checkpoint (best_model.pth) found. Please run training first.")
+        print(f"❌ Error: No trained model checkpoint ({ckpt_name}) found. Please run training first.")
         sys.exit(1)
 
     print(f"✔ Found model checkpoint at: {checkpoint_path}")
@@ -57,16 +64,28 @@ def run_evaluation():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"✔ Using device: {device}")
 
+    # Load checkpoint state dict to inspect structure
+    checkpoint = torch.load(checkpoint_path, map_location=device)
+    state_dict = checkpoint["model_state_dict"] if "model_state_dict" in checkpoint else checkpoint
+    
+    # Detect adaptation head keys
+    has_adaptation_head = any("fc.0" in k for k in state_dict.keys())
+    if has_adaptation_head:
+        print("✔ Checkpoint contains adaptation MLP head structure.")
+
     # 3. Instantiate model dynamically based on configuration
     if config.MODEL_NAME == "ResNet18":
         from src.models import ResNet18Model
-        model = ResNet18Model(
-            num_classes=num_classes,
-            pretrained=config.PRETRAINED,
-            dropout=config.DROPOUT,
-            unfreeze_layer3=config.UNFREEZE_LAYER3,
-            unfreeze_layer4=config.UNFREEZE_LAYER4,
-        )
+        from unittest.mock import patch
+        with patch.object(config, "ADD_ADAPTATION_HEAD", has_adaptation_head), \
+             patch.object(config, "ENABLE_DOMAIN_ADAPTATION", has_adaptation_head or use_adapted):
+            model = ResNet18Model(
+                num_classes=num_classes,
+                pretrained=config.PRETRAINED,
+                dropout=config.DROPOUT,
+                unfreeze_layer3=config.UNFREEZE_LAYER3,
+                unfreeze_layer4=config.UNFREEZE_LAYER4,
+            )
     elif config.MODEL_NAME == "SimpleCNN":
         from src.models import SimpleCNN
         model = SimpleCNN(
@@ -78,7 +97,6 @@ def run_evaluation():
         sys.exit(1)
 
     # Load model weights
-    checkpoint = torch.load(checkpoint_path, map_location=device)
     if "model_state_dict" in checkpoint:
         model.load_state_dict(checkpoint["model_state_dict"])
     else:
@@ -217,4 +235,9 @@ def run_evaluation():
     print(f"✔ Metrics report saved to: {report_path}")
 
 if __name__ == "__main__":
-    run_evaluation()
+    import argparse
+    parser = argparse.ArgumentParser(description="Evaluate baseline or domain adapted Tankri OCR model.")
+    parser.add_argument("--use_adapted", action="store_true", help="Evaluate the domain-adapted model checkpoint.")
+    args = parser.parse_args()
+    
+    run_evaluation(use_adapted=args.use_adapted)
