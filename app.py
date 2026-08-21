@@ -38,9 +38,12 @@ def get_model_and_device():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = ResNet18Model(num_classes=num_classes, pretrained=True)
 
+    # MODELS_DIR (models/) is the single canonical, verified-correct checkpoint
+    # location (consolidated 2026-08-21 -- see CHANGELOG.md). The other
+    # candidates are kept only as fallbacks for partial/local-only checkouts.
     checkpoint_candidates = [
-        PROJECT_ROOT / "notebooks" / "models" / "best_model.pth",
         MODELS_DIR / "best_model.pth",
+        PROJECT_ROOT / "notebooks" / "models" / "best_model.pth",
         PROJECT_ROOT / "notebooks" / "best_model.pth",
         PROJECT_ROOT / "best_model.pth",
     ]

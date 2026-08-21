@@ -44,9 +44,12 @@ def run_mapping_checks():
     print("✔ Mappings match the filtered dataset classes perfectly.")
     
     # 4. Check checkpoint output dimension
+    # models/ is the single canonical, verified-correct checkpoint location
+    # (consolidated 2026-08-21 -- see CHANGELOG.md). Other candidates are
+    # fallbacks for partial/local-only checkouts only.
     checkpoint_candidates = [
-        PROJECT_ROOT / "notebooks" / "models" / "best_model.pth",
         PROJECT_ROOT / "models" / "best_model.pth",
+        PROJECT_ROOT / "notebooks" / "models" / "best_model.pth",
         PROJECT_ROOT / "notebooks" / "best_model.pth",
         PROJECT_ROOT / "best_model.pth",
     ]

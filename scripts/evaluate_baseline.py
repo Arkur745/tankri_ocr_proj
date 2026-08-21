@@ -24,11 +24,12 @@ from src.dataset.augmentation import val_transform_resnet
 
 def run_evaluation(use_adapted=False):
     warnings.filterwarnings("ignore", category=UserWarning)
-    
-    # If use_adapted is False, fallback to checking configs
-    if not use_adapted:
-        use_adapted = getattr(config, "ENABLE_DOMAIN_ADAPTATION", False)
-        
+
+    # Which model to evaluate is controlled solely by the use_adapted argument
+    # (i.e. the --use_adapted CLI flag). This used to also silently switch to
+    # the adapted model whenever config.ENABLE_DOMAIN_ADAPTATION was True,
+    # which meant "evaluate the baseline" could silently evaluate the adapted
+    # model instead, depending on unrelated config state. Removed 2026-08-21.
     ckpt_name = "best_domain_adapted_model.pth" if use_adapted else "best_model.pth"
 
     print("==========================================================")
@@ -43,9 +44,13 @@ def run_evaluation(use_adapted=False):
     print(f"✔ Loaded label mappings. Number of classes: {num_classes}")
 
     # 2. Find and load the model checkpoint
+    # models/ is the single canonical, verified-correct location for both
+    # checkpoints (consolidated 2026-08-21 -- see CHANGELOG.md). The other
+    # candidates are kept only as fallbacks for partial/local-only checkouts
+    # that haven't fetched models/ yet, not as an ambiguity-introducing search.
     checkpoint_candidates = [
-        PROJECT_ROOT / "notebooks" / "models" / ckpt_name,
         PROJECT_ROOT / "models" / ckpt_name,
+        PROJECT_ROOT / "notebooks" / "models" / ckpt_name,
         PROJECT_ROOT / "notebooks" / ckpt_name,
         PROJECT_ROOT / ckpt_name,
     ]
@@ -179,7 +184,7 @@ def run_evaluation(use_adapted=False):
     mean_confidence = np.mean(confidences)
 
     print("\n==========================================================")
-    print("Baseline Metrics Summary:")
+    print(f"{('Adapted' if use_adapted else 'Baseline')} Metrics Summary:")
     print("==========================================================")
     print(f"  Top-1 Accuracy : {top1_acc * 100:.2f}% ({correct_1}/{total})")
     print(f"  Top-3 Accuracy : {top3_acc * 100:.2f}% ({correct_3}/{total})")
@@ -194,26 +199,32 @@ def run_evaluation(use_adapted=False):
     reports_dir = PROJECT_ROOT / "reports"
     reports_dir.mkdir(parents=True, exist_ok=True)
 
+    # Output naming reflects which model was actually evaluated (previously
+    # hardcoded to "baseline_*" regardless of use_adapted, which mislabeled
+    # adapted-model output as baseline -- fixed 2026-08-21).
+    file_prefix = "domain_adapted" if use_adapted else "baseline"
+    title_label = "Domain-Adapted" if use_adapted else "Baseline"
+
     # Plot and save confusion matrix
     plt.figure(figsize=(16, 14))
     sns.heatmap(
-        cm, 
-        annot=True, 
-        fmt="d", 
-        cmap="Blues", 
-        xticklabels=target_names, 
+        cm,
+        annot=True,
+        fmt="d",
+        cmap="Blues",
+        xticklabels=target_names,
         yticklabels=target_names,
         annot_kws={"size": 7}
     )
-    plt.title(f"Baseline Confusion Matrix ({config.MODEL_NAME})", fontsize=16)
+    plt.title(f"{title_label} Confusion Matrix ({config.MODEL_NAME})", fontsize=16)
     plt.xlabel("Predicted Label", fontsize=12)
     plt.ylabel("True Label", fontsize=12)
     plt.xticks(rotation=90, fontsize=8)
     plt.yticks(rotation=0, fontsize=8)
     plt.tight_layout()
-    
-    cm_path = reports_dir / "baseline_confusion_matrix.png"
-    
+
+    cm_path = reports_dir / f"{file_prefix}_confusion_matrix.png"
+
     plt.savefig(cm_path, dpi=200)
     plt.close()
     print(f"✔ Confusion matrix saved to: {cm_path}")
@@ -221,15 +232,15 @@ def run_evaluation(use_adapted=False):
     # 7. Save metrics report JSON
     metrics_report = {
         "model_name": config.MODEL_NAME,
-        "checkpoint_path": str(checkpoint_path),
+        "checkpoint_path": str(checkpoint_path.relative_to(PROJECT_ROOT)),
         "total_samples": total,
         "top1_accuracy": top1_acc,
         "top3_accuracy": top3_acc,
         "top5_accuracy": top5_acc,
         "mean_confidence": mean_confidence,
     }
-    
-    report_path = reports_dir / "baseline_metrics.json"
+
+    report_path = reports_dir / f"{file_prefix}_metrics.json"
     with open(report_path, "w", encoding="utf-8") as f:
         json.dump(metrics_report, f, ensure_ascii=False, indent=4)
     print(f"✔ Metrics report saved to: {report_path}")

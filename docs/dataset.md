@@ -33,3 +33,9 @@ A set of custom torchvision-compatible transforms are used:
 * **JPEG Compression**: Simulates low-quality scanning artifacts by compressing image arrays into memory buffers using standard quality profiles.
 * **Gaussian Noise**: Adds zero-mean Gaussian noise to raw tensors for sensor simulation.
 * **Geometric Transforms**: Uses RandomAffine (rotations, translations, scaling, shears) and RandomPerspective.
+
+---
+
+## 4. Train/Val/Test Splits
+
+Splits used for ablation and headline reporting are pre-computed and versioned as JSON (`artifacts/data_splits/`, `src/utils/data_split.py`) rather than re-sampled ad hoc, to keep model-selection and test data strictly separated. See [statistical_rigor.md](statistical_rigor.md#1-clean-701515-trainvaltest-split-srcutilsdata_splitpy) for the split methodology and rationale.

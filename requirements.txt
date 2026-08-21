@@ -1,8 +1,26 @@
 # Core dependencies
-pytorch
+torch
 torchvision
+numpy
 pillow
-pyyaml
-mlflow
-streamlit
 opencv-python-headless
+
+# Data handling & metrics
+pandas
+scipy
+scikit-learn
+
+# Experiment tracking & data/model versioning
+mlflow
+dvc
+
+# Visualization
+matplotlib
+seaborn
+
+# Config & utilities
+pyyaml
+tqdm
+
+# Interactive apps
+streamlit

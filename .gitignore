@@ -32,8 +32,8 @@ Thumbs.db
 mlruns/
 
 # Models and outputs
-models/
-outputs/
+outputs/*
+!outputs/sample_tuning/
 checkpoints/
 *.pth
 *.pt
@@ -51,8 +51,12 @@ build/
 dist/
 *.egg-info/
 /models
-reports/
+/notebooks/models/
 config_snapshot.json
+
+# Non-final report/debug visuals (curated reports/ subset is tracked)
+reports/ood_evaluation/image_loading_sanity_check.png
+reports/ood_evaluation/synthetic_dataset_comparison.png
 
 # Synthetic datasets
 generated_dataset/
@@ -60,3 +64,6 @@ generated_dataset_hybrid/
 
 # MLflow SQLite Database
 mlflow.db
+
+# LaTeX paper folder
+latex/

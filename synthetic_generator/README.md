@@ -49,20 +49,20 @@ The default procedural generation pipeline progresses through the following modu
 
 ## Configuration
 
-All parameters are configured in [src/config.py](file:///d:/Dev/tankri_ocr_proj/src/config.py) under the **PROCEDURAL DATASET GENERATION CONFIG** section.
+Unlike the training pipeline, the generator is **not** driven by `src/configs/config.py`. It is configured directly via the arguments to `run_synthetic_generation()` in [generator.py](generator.py), most conveniently by editing the call at the bottom of that file (`if __name__ == "__main__":`).
 
-### Key Configuration Variables
+### Key Parameters
 
-| Variable | Description |
+| Parameter | Description |
 | :--- | :--- |
-| `ENABLE_PROCEDURAL_GENERATION` | Master flag to enable procedural pipeline integration. |
-| `TRAINING_DATASET` | Chooses active dataset: `"real"`, `"synthetic"`, or `"hybrid"`. |
-| `IMAGES_PER_CLASS` | Number of synthetic images to generate per class. |
-| `OUTPUT_IMAGE_SIZE` | Dimensions of generated images (default `128`). |
-| `RENDER_MODE` | Rendering preset: `"paper"`, `"stone"`, `"wall"`, `"manuscript"`, or `"custom"`. |
-| `TEXTURE_MODE` | Texture collection: `"generic"` (all textures) or `"target"` (specific domain folder). |
-| `TARGET_DOMAIN` | Subfolder in `assets/target_domains/` to use if `TEXTURE_MODE = "target"`. |
-| `DEBUG_PIPELINE` | Save intermediate stage images for the first 5 samples. |
+| `num_per_class` | Number of synthetic images to generate per class (the shipped default at the bottom of `generator.py` is `5`, for debug/preview runs — set this to e.g. `200` for a full ~9,000-image corpus across the 45 classes). |
+| `output_size` | Dimensions of generated images as `(width, height)`, default `(128, 128)`. |
+| `blend_mode` | Texture/glyph blend mode passed to `texture_blending.blend_texture_and_glyph` (default `"carve"`, simulating stone-engraving-style displacement). |
+| `debug` | If `True`, saves intermediate per-stage images for the first 5 samples (see below). |
+
+Background textures are auto-loaded (no config flag needed) by `synthetic_generator/utils.load_textures()`, which reads every image it finds in `assets/target_domains/temple_wall/` and `assets/textures/`, in that order.
+
+To build the hybrid dataset (real + synthetic, `real_`/`synth_` filename prefixes to avoid collisions), call `create_hybrid_dataset()` in `generator.py` — it will run the synthetic generator first if `generated_dataset/` doesn't already exist.
 
 ---
 
@@ -94,26 +94,21 @@ This script will:
 * Perform strict post-generation verification checks to ensure dataset integrity.
 
 ### 2. Hybrid Dataset Blending
-To automatically combine the real dataset and the procedurally simulated synthetic dataset:
-1. Open [src/config.py](file:///d:/Dev/tankri_ocr_proj/src/config.py).
-2. Set `TRAINING_DATASET = "hybrid"`.
-3. Run the generator:
-   ```bash
-   python synthetic_generator/generator.py
-   ```
-The script will generate the synthetic dataset first, and then merge the real images and synthetic images (using a `synth_` prefix to prevent collision) into a single folder `generated_dataset_hybrid/` along with a unified `labels.csv`.
+To combine the real dataset and the procedurally simulated synthetic dataset into `generated_dataset_hybrid/`:
+```bash
+python -c "from synthetic_generator.generator import create_hybrid_dataset; create_hybrid_dataset()"
+```
+This merges the real images and synthetic images (`real_`/`synth_` filename prefixes to prevent collisions) into a single folder along with a unified `labels.csv`. If `generated_dataset/` doesn't exist yet, it generates the synthetic corpus first (at the `num_per_class` currently set in `generator.py`).
 
 ---
 
 ## Debugging the Pipeline
 
-If you want to visualize how each augmentation stage alters the transparent character layer, set `DEBUG_PIPELINE = True` in [src/config.py](file:///d:/Dev/tankri_ocr_proj/src/config.py).
-
-The generator will save intermediate step files for the first 5 samples in `generated_dataset/debug/sample_XXX/`:
+Pass `debug=True` to `run_synthetic_generation()` to save intermediate per-stage images for the first 5 samples to `generated_dataset/debug/sample_XXX/`:
 * `01_render.png`: Initial text draw on a transparent canvas.
-* `02_transformed.png`: Image after affine shear, scale, rotation, and translation.
-* `03_texture.png`: Chosen background texture file.
-* `04_blended.png`: Displaced boundaries and texture-blended glyph.
-* `05_degraded.png`: Image after Augraphy document degradation.
-* `06_augmented.png`: Image after OpenCV imaging augmentations.
-* `07_final.png`: Resized and post-processed final output.
+* `02_transformed.png`: Same render (affine perturbation is applied before this stage, not visualized separately).
+* `03_texture.png`: Chosen background texture file, resized to the output canvas.
+* `04_blended.png`: Texture-blended glyph (after `texture_blending.blend_texture_and_glyph`).
+* `05_degraded.png` / `06_augmented.png` / `07_final.png`: Final output after document/sensor degradation (`augmentations.apply_document_degradations`) — these three currently save the same final image.
+
+`scripts/create_pipeline_figure.py` reads a saved debug run from `outputs/sample_tuning/` and composes a labeled 5-stage figure for the paper; see `outputs/sample_tuning/` in the repo root for an example set of stage outputs.

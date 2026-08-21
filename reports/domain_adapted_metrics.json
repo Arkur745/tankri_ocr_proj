@@ -1,0 +1,9 @@
+{
+    "model_name": "ResNet18",
+    "checkpoint_path": "models\\best_domain_adapted_model.pth",
+    "total_samples": 31,
+    "top1_accuracy": 0.1935483870967742,
+    "top3_accuracy": 0.3548387096774194,
+    "top5_accuracy": 0.4838709677419355,
+    "mean_confidence": 0.48378815622098986
+}

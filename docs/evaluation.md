@@ -23,3 +23,9 @@ A command-line script to evaluate model performance on the test set:
   2. Dynamically configures the model architecture wrapper (supporting adaptation MLP heads or default fc classifiers).
   3. Loads the official test dataset (`dataset/test/` with `labels/test_labels.csv`).
   4. Generates a terminal classification report and displays overall accuracy.
+
+---
+
+## 3. Statistical Rigor: Multi-Seed Ablations, Confidence Intervals & Calibration
+
+For paper-grade reporting (multi-seed ablation mean ± std, Wilson confidence intervals and Expected Calibration Error on the small OOD wall-inscription test set, and the leakage-free 70/15/15 split these depend on), see [statistical_rigor.md](statistical_rigor.md).

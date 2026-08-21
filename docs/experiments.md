@@ -26,3 +26,9 @@ This launches a browser interface at `http://localhost:5000` to:
 * Compare loss curves and validation accuracies across baseline and domain adapted runs.
 * Verify hyperparameter values (learning rates, batch sizes, unfreezing options).
 * Download saved artifact files (confusion matrix PNGs, classification reports, configuration snapshots, models).
+
+---
+
+## 3. Multi-Seed Ablation Experiments
+
+In addition to the single-run notebook workflow above, `src/training/multi_seed_ablation.py` reruns the E00–E05 ablation configurations across 5 seeds each for variance-aware reporting. See [statistical_rigor.md](statistical_rigor.md) for the full methodology.
